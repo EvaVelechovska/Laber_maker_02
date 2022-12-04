@@ -13,9 +13,11 @@ class GUIApp:
         self.in_files = []
         self.user_labels = []
         self.event_to_action = {
-            "-DELETE-"  : self.smaz,
+            "-DELETE-"  : self.delete,
             "-ADD-"     : self.add,
-            "-POKUS-"   : self.get_int_aliquotes,
+            "-EXPORT-"  : self.export,
+            "-SAVE-"    : self.save,
+
 
         }
         self.table_header_to_key = {
@@ -87,7 +89,7 @@ class GUIApp:
                        sg.Button("Pokus", key="-POKUS-")]
                         ]),
                     sg.Frame("Entered values", size=(420, 300), layout=[
-                        [sg.Column(layout=[
+                        [sg.Column(key="-COLUMN-",layout=[
                             [sg.Multiline(size=size3, no_scrollbar=True, pad=(0, 0), key="-LIST_ASSAY-"),
                              sg.Multiline(size=(5, 30), no_scrollbar=True, pad=(0, 0), key="-LIST_ALIQ-"),
                             sg.Multiline(size=size3, no_scrollbar=True, pad=(0, 0), key="-LIST_PROJECT-"),
@@ -97,15 +99,13 @@ class GUIApp:
                              sg.Multiline(size=size3, no_scrollbar=True, do_not_clear=True, pad=(0, 0), key="-LIST_DATE-")]
                         ])]])
                     ],
-                    [sg.Push(), sg.Button("Export"), sg.Button("Save"), sg.Button("Close")]
+                    [sg.Push(), sg.Button("Export", key="-EXPORT-"), sg.Button("Save", key="-SAVE-"), sg.Button("Close")]
                   ]
 
-        return sg.Window("Zadejte", layout, finalize=True)
+        return sg.Window("Zadejte", layout, auto_size_text=True,finalize=True)
 
 
-
-
-    def smaz(self, values):
+    def delete(self, values):
         self.window["-ASSAY_NO-"].Update("")
         self.window["-TOTAL_ALIQUOTES-"].Update("")
         self.window["-PROJECT-"].Update("")
@@ -115,22 +115,25 @@ class GUIApp:
         self.window["-DATE-"].Update("")
 
     def add(self, values):
-        total_aliquotes = 10
+        total_aliquotes = int(values["-TOTAL_ALIQUOTES-"])
+        batch_no = 0
         for cislo in range(total_aliquotes):
-            batch_no = 1
-            aliq = f'{batch_no}/{values["-TOTAL_ALIQUOTES-"]}'
+            batch_no += 1
+
             self.window["-LIST_ASSAY-"].print(values["-ASSAY_NO-"])
-            self.window["-LIST_ALIQ-"].print(aliq)
+            self.window["-LIST_ALIQ-"].print(f'{batch_no}/{values["-TOTAL_ALIQUOTES-"]}')
             self.window["-LIST_PROJECT-"].print(values["-PROJECT-"])
             self.window["-LIST_CELL_LINE-"].print(values["-CELL_LINE-"])
             self.window["-LIST_MEDIUM-"].print(values["-MEDIUM-"])
             self.window["-LIST_CONC-"].print(values["-CONC-"])
             self.window["-LIST_DATE-"].print(values["-DATE-"])
 
-    def get_int_aliquotes(self, values):
-        total_aliquotes = self.window["-TOTAL_ALIQUOTES-"]
-        print(type(total_aliquotes))
-        return total_aliquotes
+
+    def export(self, values):
+        print("exportuji: ", self.window["-COLUMN-"])
+
+    def save(self, values):
+        print("ukládám: ", self.window["-COLUMN-"])
 
 def gui_main():
     log.info('starting gui app')
