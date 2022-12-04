@@ -15,7 +15,7 @@ class GUIApp:
         self.event_to_action = {
             "-DELETE-"  : self.smaz,
             "-ADD-"     : self.add,
-            "-POKUS-"     : self.get_int_aliquotes,
+            "-POKUS-"   : self.get_int_aliquotes,
 
         }
         self.table_header_to_key = {
