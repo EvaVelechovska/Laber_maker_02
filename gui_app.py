@@ -17,13 +17,16 @@ class GUIApp:
             "-ADD-"     : self.add,
             "-EXPORT-"  : self.export,
             "-SAVE-"    : self.save,
-
+            "-CELL_LINE-":self.add_medium,
 
         }
         self.table_header_to_key = {
             "Název": "Název",
 
         }
+
+    def __repr__(self):
+        return({self})
 
     def __enter__(self):
         self.window = self.create_window()
@@ -79,7 +82,7 @@ class GUIApp:
                       [sg.Text("Amount of aligoutes: ", size=size), sg.Input(key="-TOTAL_ALIQUOTES-", size=size2)],
                       [sg.Text("Project: ", size=size), sg.OptionMenu(VALID_PROJECTS, key="-PROJECT-", size=size2)],
                       [sg.Text("Cell line: ", size=size), sg.OptionMenu(CELL_MEDIUM.keys(), key="-CELL_LINE-", size=size2)],
-                      [sg.Text("Medium: ", size=size), sg.InputText(key="-MEDIUM-", size=size2)],
+                      [sg.Text("Medium: ", size=size), sg.OptionMenu(CELL_MEDIUM.values(), key="-MEDIUM-", size=size2)],
                       [sg.Text("concentration: [x10e6 cells/ml]", size=size), sg.InputText(key="-CONC-", size=size2)],
                       [sg.Text("date: ", size=size), sg.InputText(key="-DATE-", size=size2),
                        sg.CalendarButton("chose", target="-DATE-", format="%d.%m.20%y", close_when_date_chosen=True, button_color=("Grey"))],
@@ -88,22 +91,26 @@ class GUIApp:
                        sg.Button("Delete", button_color=("Grey"), key="-DELETE-"),
                        sg.Button("Pokus", key="-POKUS-")]
                         ]),
-                    sg.Frame("Entered values", size=(420, 300), layout=[
+                    sg.Frame("Entered values", size=(500, 300), layout=[
                         [sg.Column(key="-COLUMN-",layout=[
                             [sg.Multiline(size=size3, no_scrollbar=True, pad=(0, 0), key="-LIST_ASSAY-"),
                              sg.Multiline(size=(5, 30), no_scrollbar=True, pad=(0, 0), key="-LIST_ALIQ-"),
-                            sg.Multiline(size=size3, no_scrollbar=True, pad=(0, 0), key="-LIST_PROJECT-"),
+                             sg.Multiline(size=size3, no_scrollbar=True, pad=(0, 0), key="-LIST_PROJECT-"),
                              sg.Multiline(size=size3, no_scrollbar=True, pad=(0, 0), key="-LIST_CELL_LINE-"),
                              sg.Multiline(size=size3, no_scrollbar=True, do_not_clear=True, pad=(0, 0), key="-LIST_MEDIUM-"),
-                             sg.Multiline(size=size3, no_scrollbar=True, do_not_clear=True, pad=(0, 0), key="-LIST_CONC-"),
+                             sg.Multiline(size=(5, 30), no_scrollbar=True, do_not_clear=True, pad=(0, 0), key="-LIST_CONC-"),
                              sg.Multiline(size=size3, no_scrollbar=True, do_not_clear=True, pad=(0, 0), key="-LIST_DATE-")]
                         ])]])
                     ],
                     [sg.Push(), sg.Button("Export", key="-EXPORT-"), sg.Button("Save", key="-SAVE-"), sg.Button("Close")]
                   ]
 
-        return sg.Window("Zadejte", layout, auto_size_text=True,finalize=True)
+        return sg.Window("Zadejte", layout, auto_size_text=True, finalize=True)
 
+    def add_medium(self, values):
+        data = (CELL_MEDIUM.get("cell_line", "")),
+        print(data)
+        self.window["-MEDIUM-"].Update(values["CELL_MEDIUM"])
 
     def delete(self, values):
         self.window["-ASSAY_NO-"].Update("")
@@ -128,12 +135,17 @@ class GUIApp:
             self.window["-LIST_CONC-"].print(values["-CONC-"])
             self.window["-LIST_DATE-"].print(values["-DATE-"])
 
+    def add_control(self, values, event):
+        if values["-ASSAY_NO-"] == "" and event == "add":
+            sg.PopupOK("Warning")
+
 
     def export(self, values):
         print("exportuji: ", self.window["-COLUMN-"])
 
     def save(self, values):
         print("ukládám: ", self.window["-COLUMN-"])
+
 
 def gui_main():
     log.info('starting gui app')
