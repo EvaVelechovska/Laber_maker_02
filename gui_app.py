@@ -1,6 +1,6 @@
 import logging
 import PySimpleGUI as sg
-from inputs import CELL_MEDIUM, VALID_PROJECTS, VALID_CELL_LINES
+from inputs import CELL_MEDIUM, VALID_PROJECTS, VALID_BAC
 
 log = logging.getLogger(__name__)
 
@@ -13,11 +13,11 @@ class GUIApp:
         self.in_files = []
         self.user_labels = []
         self.event_to_action = {
-            "-DELETE-"  : self.delete,
-            "-ADD-"     : self.add,
-            "-EXPORT-"  : self.export,
-            "-SAVE-"    : self.save,
-            "-CELL_LINE-":self.add_medium,
+            "-DELETE-": self.delete,
+            "-ADD-": self.add,
+            "-EXPORT-": self.export,
+            "-SAVE-": self.save,
+            "-CELL_LINE-": self.add_medium,
 
         }
         self.table_header_to_key = {
@@ -26,7 +26,7 @@ class GUIApp:
         }
 
     def __repr__(self):
-        return({self})
+        return ({self})
 
     def __enter__(self):
         self.window = self.create_window()
@@ -64,7 +64,6 @@ class GUIApp:
     def create_window(self):
         sg.theme("Darkblue")
 
-
         def tool_bar_menu():
             menuBar_Layout = [
                 ['&File', ['&Open     Ctrl-O', '&Save       Ctrl-S', 'E&xit']],
@@ -73,36 +72,203 @@ class GUIApp:
                 ['&Help', ['&About...']]
             ]
             return menuBar_Layout
-        size = (30, 1)
-        size2 = (15, 1)
-        size3 = (10, 30)
-        layout = [  [sg.Menu(tool_bar_menu())],
-                    [sg.Frame("Enter values", size=(420, 300), layout=[
-                      [sg.Text("Assay no.: ", size=size), sg.InputText(key="-ASSAY_NO-", size=size2)],
-                      [sg.Text("Amount of aligoutes: ", size=size), sg.Input(key="-TOTAL_ALIQUOTES-", size=size2)],
-                      [sg.Text("Project: ", size=size), sg.OptionMenu(VALID_PROJECTS, key="-PROJECT-", size=size2)],
-                      [sg.Text("Cell line: ", size=size), sg.OptionMenu(CELL_MEDIUM.keys(), key="-CELL_LINE-", size=size2)],
-                      [sg.Text("Medium: ", size=size), sg.OptionMenu(CELL_MEDIUM.values(), key="-MEDIUM-", size=size2)],
-                      [sg.Text("concentration: [x10e6 cells/ml]", size=size), sg.InputText(key="-CONC-", size=size2)],
-                      [sg.Text("date: ", size=size), sg.InputText(key="-DATE-", size=size2),
-                       sg.CalendarButton("chose", target="-DATE-", format="%d.%m.20%y", close_when_date_chosen=True, button_color=("Grey"))],
-                      [sg.Text("")],
-                      [sg.Push(), sg.Button("Add", button_color=("Grey"), key="-ADD-"),
-                       sg.Button("Delete", button_color=("Grey"), key="-DELETE-"),
-                       sg.Button("Pokus", key="-POKUS-")]
-                        ]),
-                    sg.Frame("Entered values", size=(500, 300), layout=[
-                        [sg.Column(key="-COLUMN-",layout=[
-                            [sg.Multiline(size=size3, no_scrollbar=True, pad=(0, 0), key="-LIST_ASSAY-"),
-                             sg.Multiline(size=(5, 30), no_scrollbar=True, pad=(0, 0), key="-LIST_ALIQ-"),
-                             sg.Multiline(size=size3, no_scrollbar=True, pad=(0, 0), key="-LIST_PROJECT-"),
-                             sg.Multiline(size=size3, no_scrollbar=True, pad=(0, 0), key="-LIST_CELL_LINE-"),
-                             sg.Multiline(size=size3, no_scrollbar=True, do_not_clear=True, pad=(0, 0), key="-LIST_MEDIUM-"),
-                             sg.Multiline(size=(5, 30), no_scrollbar=True, do_not_clear=True, pad=(0, 0), key="-LIST_CONC-"),
-                             sg.Multiline(size=size3, no_scrollbar=True, do_not_clear=True, pad=(0, 0), key="-LIST_DATE-")]
-                        ])]])
-                    ],
-                    [sg.Push(), sg.Button("Export", key="-EXPORT-"), sg.Button("Save", key="-SAVE-"), sg.Button("Close")]
+
+        def bac_tab():
+            size = (30, 1)
+            size2 = (15, 1)
+            size3 = (10, 30)
+            Bac_layout = [[sg.T("bac")],
+                          [sg.Frame("Enter values", size=(420, 300), layout=[
+                              [sg.Text("Assay no.: ", size=size), sg.InputText(key="-ASSAY_NO-", size=size2)],
+                              [sg.Text("Amount of aligoutes: ", size=size),
+                               sg.Input(key="-TOTAL_ALIQUOTES-", size=size2)],
+                              [sg.Text("Project: ", size=size),
+                               sg.OptionMenu(VALID_PROJECTS, key="-PROJECT-", size=size2)],
+                              [sg.Text("Bacteria: ", size=size), sg.OptionMenu(VALID_BAC, key="-BAC-", size=size2)],
+                              [sg.Text("Solution: ", size=size), sg.Input(key="-SOL-", size=size2)],
+                              [sg.Text("concentration: ", size=size), sg.InputText(key="-CONC-", size=size2)],
+                              [sg.Text("date: ", size=size), sg.InputText(key="-DATE-", size=size2),
+                               sg.CalendarButton("chose", target="-DATE-", format="%d.%m.20%y",
+                                                 close_when_date_chosen=True, button_color=("Grey"))],
+                              [sg.Text("")],
+                              [sg.Push(), sg.Button("Add", button_color=("Grey"), key="-ADD-"),
+                               sg.Button("Delete", button_color=("Grey"), key="-DELETE-"),
+                               ]
+                          ]),
+                           sg.Frame("Entered values", size=(500, 300), layout=[
+                               [sg.Column(key="-COLUMN-", layout=[
+                                   [sg.Multiline(size=size3, no_scrollbar=True, pad=(0, 0), key="-LIST_ASSAY-"),
+                                    sg.Multiline(size=(5, 30), no_scrollbar=True, pad=(0, 0), key="-LIST_ALIQ-"),
+                                    sg.Multiline(size=size3, no_scrollbar=True, pad=(0, 0), key="-LIST_PROJECT-"),
+                                    sg.Multiline(size=size3, no_scrollbar=True, pad=(0, 0), key="-LIST_BAC-"),
+                                    sg.Multiline(size=size3, no_scrollbar=True, do_not_clear=True, pad=(0, 0),
+                                                 key="-LIST_SOL-"),
+                                    sg.Multiline(size=(5, 30), no_scrollbar=True, do_not_clear=True, pad=(0, 0),
+                                                 key="-LIST_CONC-"),
+                                    sg.Multiline(size=size3, no_scrollbar=True, do_not_clear=True, pad=(0, 0),
+                                                 key="-LIST_DATE-")]
+                               ])]])
+                           ],
+                          [sg.Push(), sg.Button("Export", key="-EXPORT-"), sg.Button("Save", key="-SAVE-"),
+                           sg.Button("Close")]
+                          ]
+            return Bac_layout
+
+        def cc_tab():
+            size = (30, 1)
+            size2 = (15, 1)
+            size3 = (10, 30)
+            CC_layout = [[sg.T("CC")],
+                         [sg.Frame("Enter values", size=(420, 300), layout=[
+                             [sg.Text("Assay no.: ", size=size), sg.InputText(key="-ASSAY_NO-", size=size2)],
+                             [sg.Text("Amount of aligoutes: ", size=size),
+                              sg.Input(key="-TOTAL_ALIQUOTES-", size=size2)],
+                             [sg.Text("Project: ", size=size),
+                              sg.OptionMenu(VALID_PROJECTS, key="-PROJECT-", size=size2)],
+                             [sg.Text("Cell line: ", size=size),
+                              sg.OptionMenu(CELL_MEDIUM.keys(), key="-CELL_LINE-", size=size2)],
+                             [sg.Text("Medium: ", size=size),
+                              sg.OptionMenu(CELL_MEDIUM.values(), key="-MEDIUM-", size=size2)],
+                             [sg.Text("concentration: [x10e6 cells/ml]", size=size),
+                              sg.InputText(key="-CONC-", size=size2)],
+                             [sg.Text("date: ", size=size), sg.InputText(key="-DATE-", size=size2),
+                              sg.CalendarButton("chose", target="-DATE-", format="%d.%m.20%y",
+                                                close_when_date_chosen=True, button_color=("Grey"))],
+                             [sg.Text("")],
+                             [sg.Push(), sg.Button("Add", button_color=("Grey"), key="-ADD-"),
+                              sg.Button("Delete", button_color=("Grey"), key="-DELETE-")]
+                         ]),
+                          sg.Frame("Entered values", size=(500, 300), layout=[
+                              [sg.Column(key="-COLUMN-", layout=[
+                                  [sg.Multiline(size=size3, no_scrollbar=True, pad=(0, 0), key="-LIST_ASSAY-"),
+                                   sg.Multiline(size=(5, 30), no_scrollbar=True, pad=(0, 0), key="-LIST_ALIQ-"),
+                                   sg.Multiline(size=size3, no_scrollbar=True, pad=(0, 0), key="-LIST_PROJECT-"),
+                                   sg.Multiline(size=size3, no_scrollbar=True, pad=(0, 0), key="-LIST_CELL_LINE-"),
+                                   sg.Multiline(size=size3, no_scrollbar=True, do_not_clear=True, pad=(0, 0),
+                                                key="-LIST_MEDIUM-"),
+                                   sg.Multiline(size=(5, 30), no_scrollbar=True, do_not_clear=True, pad=(0, 0),
+                                                key="-LIST_CONC-"),
+                                   sg.Multiline(size=size3, no_scrollbar=True, do_not_clear=True, pad=(0, 0),
+                                                key="-LIST_DATE-")]
+                              ])]])
+                          ],
+                         [sg.Push(), sg.Button("Export", key="-EXPORT-"), sg.Button("Save", key="-SAVE-"),
+                          sg.Button("Close")]
+                         ]
+            return CC_layout
+
+        def dev_tab():
+            size = (30, 1)
+            size2 = (15, 1)
+            size3 = (10, 30)
+            Dev_layout = [[sg.T("Dev")],
+                          [sg.Frame("Enter values", size=(420, 300), layout=[
+                              [sg.Text("Assay no.: ", size=size), sg.InputText(key="-ASSAY_NO-", size=size2)],
+                              [sg.Text("Amount of aligoutes: ", size=size),
+                               sg.Input(key="-TOTAL_ALIQUOTES-", size=size2)],
+                              [sg.Text("Project: ", size=size),
+                               sg.OptionMenu(VALID_PROJECTS, key="-PROJECT-", size=size2)],
+                              [sg.Text("concentration: ", size=size), sg.InputText(key="-CONC-", size=size2)],
+                              [sg.Text("date: ", size=size), sg.InputText(key="-DATE-", size=size2),
+                               sg.CalendarButton("chose", target="-DATE-", format="%d.%m.20%y",
+                                                 close_when_date_chosen=True, button_color=("Grey"))],
+                              [sg.Text("")],
+                              [sg.Push(), sg.Button("Add", button_color=("Grey"), key="-ADD-"),
+                               sg.Button("Delete", button_color=("Grey"), key="-DELETE-"), ]
+                          ]),
+                           sg.Frame("Entered values", size=(500, 300), layout=[
+                               [sg.Column(key="-COLUMN-", layout=[
+                                   [sg.Multiline(size=size3, no_scrollbar=True, pad=(0, 0), key="-LIST_ASSAY-"),
+                                    sg.Multiline(size=(5, 30), no_scrollbar=True, pad=(0, 0), key="-LIST_ALIQ-"),
+                                    sg.Multiline(size=size3, no_scrollbar=True, pad=(0, 0), key="-LIST_PROJECT-"),
+                                    sg.Multiline(size=(5, 30), no_scrollbar=True, do_not_clear=True, pad=(0, 0),
+                                                 key="-LIST_CONC-"),
+                                    sg.Multiline(size=size3, no_scrollbar=True, do_not_clear=True, pad=(0, 0),
+                                                 key="-LIST_DATE-")]
+                               ])]])
+                           ],
+                          [sg.Push(), sg.Button("Export", key="-EXPORT-"), sg.Button("Save", key="-SAVE-"),
+                           sg.Button("Close")]
+                          ]
+            return Dev_layout
+
+        def phage_tab():
+            size = (30, 1)
+            size2 = (15, 1)
+            size3 = (10, 30)
+            Phage_layout = [[sg.T("Dev")],
+                            [sg.Frame("Enter values", size=(420, 300), layout=[
+                                [sg.Text("Assay no.: ", size=size), sg.InputText(key="-ASSAY_NO-", size=size2)],
+                                [sg.Text("Amount of aligoutes: ", size=size),
+                                 sg.Input(key="-TOTAL_ALIQUOTES-", size=size2)],
+                                [sg.Text("Project: ", size=size),
+                                 sg.OptionMenu(VALID_PROJECTS, key="-PROJECT-", size=size2)],
+                                [sg.Text("concentration: ", size=size), sg.InputText(key="-CONC-", size=size2)],
+                                [sg.Text("date: ", size=size), sg.InputText(key="-DATE-", size=size2),
+                                 sg.CalendarButton("chose", target="-DATE-", format="%d.%m.20%y",
+                                                   close_when_date_chosen=True, button_color=("Grey"))],
+                                [sg.Text("")],
+                                [sg.Push(), sg.Button("Add", button_color=("Grey"), key="-ADD-"),
+                                 sg.Button("Delete", button_color=("Grey"), key="-DELETE-"), ]
+                            ]),
+                             sg.Frame("Entered values", size=(500, 300), layout=[
+                                 [sg.Column(key="-COLUMN-", layout=[
+                                     [sg.Multiline(size=size3, no_scrollbar=True, pad=(0, 0), key="-LIST_ASSAY-"),
+                                      sg.Multiline(size=(5, 30), no_scrollbar=True, pad=(0, 0), key="-LIST_ALIQ-"),
+                                      sg.Multiline(size=size3, no_scrollbar=True, pad=(0, 0), key="-LIST_PROJECT-"),
+                                      sg.Multiline(size=(5, 30), no_scrollbar=True, do_not_clear=True, pad=(0, 0),
+                                                   key="-LIST_CONC-"),
+                                      sg.Multiline(size=size3, no_scrollbar=True, do_not_clear=True, pad=(0, 0),
+                                                   key="-LIST_DATE-")]
+                                 ])]])
+                             ],
+                            [sg.Push(), sg.Button("Export", key="-EXPORT-"), sg.Button("Save", key="-SAVE-"),
+                             sg.Button("Close")]
+                            ]
+            return Phage_layout
+
+        def protein_tab():
+            size = (30, 1)
+            size2 = (15, 1)
+            size3 = (10, 30)
+            Protein_layout = [[sg.T("Dev")],
+                              [sg.Frame("Enter values", size=(420, 300), layout=[
+                                  [sg.Text("Assay no.: ", size=size), sg.InputText(key="-ASSAY_NO-", size=size2)],
+                                  [sg.Text("Amount of aligoutes: ", size=size),
+                                   sg.Input(key="-TOTAL_ALIQUOTES-", size=size2)],
+                                  [sg.Text("Project: ", size=size),
+                                   sg.OptionMenu(VALID_PROJECTS, key="-PROJECT-", size=size2)],
+                                  [sg.Text("concentration: ", size=size), sg.InputText(key="-CONC-", size=size2)],
+                                  [sg.Text("date: ", size=size), sg.InputText(key="-DATE-", size=size2),
+                                   sg.CalendarButton("chose", target="-DATE-", format="%d.%m.20%y",
+                                                     close_when_date_chosen=True, button_color=("Grey"))],
+                                  [sg.Text("")],
+                                  [sg.Push(), sg.Button("Add", button_color=("Grey"), key="-ADD-"),
+                                   sg.Button("Delete", button_color=("Grey"), key="-DELETE-"), ]
+                              ]),
+                               sg.Frame("Entered values", size=(500, 300), layout=[
+                                   [sg.Column(key="-COLUMN-", layout=[
+                                       [sg.Multiline(size=size3, no_scrollbar=True, pad=(0, 0), key="-LIST_ASSAY-"),
+                                        sg.Multiline(size=(5, 30), no_scrollbar=True, pad=(0, 0), key="-LIST_ALIQ-"),
+                                        sg.Multiline(size=size3, no_scrollbar=True, pad=(0, 0), key="-LIST_PROJECT-"),
+                                        sg.Multiline(size=(5, 30), no_scrollbar=True, do_not_clear=True, pad=(0, 0),
+                                                     key="-LIST_CONC-"),
+                                        sg.Multiline(size=size3, no_scrollbar=True, do_not_clear=True, pad=(0, 0),
+                                                     key="-LIST_DATE-")]
+                                   ])]])
+                               ],
+                              [sg.Push(), sg.Button("Export", key="-EXPORT-"), sg.Button("Save", key="-SAVE-"),
+                               sg.Button("Close")]
+                              ]
+            return Protein_layout
+
+        layout = [[sg.Menu(tool_bar_menu())],
+                  [sg.TabGroup([[sg.Tab("Bacterial", layout=bac_tab()),
+                                sg.Tab("Cell Culture", layout=cc_tab()),
+                                sg.Tab("Development", layout=dev_tab()),
+                                sg.Tab("Phage", layout=phage_tab()),
+                                sg.Tab("Protein", layout=protein_tab())]]
+                               )]
                   ]
 
         return sg.Window("Zadejte", layout, auto_size_text=True, finalize=True)
@@ -122,6 +288,7 @@ class GUIApp:
         self.window["-DATE-"].Update("")
 
     def add(self, values):
+
         total_aliquotes = int(values["-TOTAL_ALIQUOTES-"])
         batch_no = 0
         for cislo in range(total_aliquotes):
@@ -138,7 +305,6 @@ class GUIApp:
     def add_control(self, values, event):
         if values["-ASSAY_NO-"] == "" and event == "add":
             sg.PopupOK("Warning")
-
 
     def export(self, values):
         print("exportuji: ", self.window["-COLUMN-"])

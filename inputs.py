@@ -31,10 +31,15 @@ import logging
 
 log = logging.getLogger(__name__)
 
+# All
 VALID_PROJECTS = ["01 - Internal", "NO. 23", "Customer 5", "x"]
+
+# Bacteria
+VALID_BAC = ["E.Coli XL1", "E.Coli RV21", "B"]
+
+# Cell Culture
 VALID_CELL_LINES = ["COLO205", "Jurkat", "HELL", "HEK-293", "CHO-K1"]
 VALID_MEDIUM = ["DMEM", "RPMI"]
-
 CELL_MEDIUM = {
     "COLO205"   : "RPMI",
     "Jurkat"    : "RPMI",
@@ -42,8 +47,6 @@ CELL_MEDIUM = {
     "CHO-K1"    : "RPMI",
     "HELL"      : "DMEM/FBS"
 }
-
-
 
 
 def better_input(question, value_type, valid_options=None):
