@@ -27,7 +27,8 @@ class GUIApp:
 
             "-EXPORT-"      : self.export,
             "-SAVE-"        : self.save,
-            "-CELL_LINE-"   : self.add_medium,
+            "-CELL_LINE-"   : self.get_medium,
+            "-CLEAR-"       : self.clear
 
         }
         self.table_header_to_key = {
@@ -70,6 +71,7 @@ class GUIApp:
 
             except KeyError:
                 log.exception('unknown event')
+                print("unknown event")
 
     def create_window(self):
         sg.theme("Darkblue")
@@ -104,8 +106,8 @@ class GUIApp:
                                ]
                           ]),
                            sg.Frame("Entered values", size=(500, 300), layout=[
-                               [sg.Column(key="-COLUMN-", layout=[
-                                   [sg.Multiline(size=size3, no_scrollbar=True, pad=(0, 0), key="-LIST_ASSAY_BAC-"),
+                               [sg.Column(key="-COLUMN_BAC-", layout=[
+                                   [sg.Multiline(size=size3,no_scrollbar=True, pad=(0, 0), key="-LIST_ASSAY_BAC-"),
                                     sg.Multiline(size=size3, no_scrollbar=True, do_not_clear=True, pad=(0, 0), key="-LIST_SOL-"),
                                     sg.Multiline(size=(5, 30), no_scrollbar=True, pad=(0, 0), key="-LIST_ALIQ_BAC-"),
                                     sg.Multiline(size=size3, no_scrollbar=True, pad=(0, 0), key="-LIST_PROJECT_BAC-"),
@@ -118,6 +120,7 @@ class GUIApp:
             return Bac_layout
 
         def cc_tab():
+            print("vytvoření okna")
             size = (30, 1)
             size2 = (15, 1)
             size3 = (10, 30)
@@ -264,18 +267,31 @@ class GUIApp:
                                 sg.Tab("Phage", layout=phage_tab()),
                                 sg.Tab("Protein", layout=protein_tab())]]
                                )],
-                  [sg.Push(), sg.Button("Clear"), sg.Button("Export", key="-EXPORT-"), sg.Button("Save", key="-SAVE-"), sg.Button("Close")]
+                  [sg.Push(), sg.Button("Clear", key="-CLEAR-"), sg.Button("Export", key="-EXPORT-"), sg.Button("Save", key="-SAVE-"), sg.Button("Close")]
                   ]
 
         return sg.Window("Zadejte", layout, auto_size_text=True, finalize=True)
 
-    def add_medium(self, values):
-        data = (CELL_MEDIUM.get("cell_line", "")),
-        print(data)
-        self.window["-MEDIUM-"].Update(values["CELL_MEDIUM"])
+    def get_medium(self, values):
+        # přiřadí správné médim k buněčné linii podle vstupního slovníku CELL_MEDIUM
+        print("přiřazení média")
+        medium = CELL_MEDIUM.get(values["-C-"])
+        return medium
 
-    # mazací funkce
+    def clear(self, values): # smaže hodnoty v "Entered values" části okna
+        print("okno vyčištěno")
+        self.window["-LIST_ASSAY_BAC-"].Update("")
+        self.window["-LIST_SOL-"].Update("")
+        self.window["-LIST_ALIQ_BAC-"].Update("")
+        self.window["-LIST_PROJECT_BAC-"].Update("")
+        self.window["-LIST_BAC-"].Update("")
+        self.window["-LIST_CONC_BAC-"].Update("")
+        self.window["-LIST_DATE_BAC-"].Update("")
+
+
+    # mazací funkce - vymaže zadané hodnoty v "Enter values" části okna
     def delete_bac(self, values):
+        print("zadané hodnoty smazány")
         self.window["-ASSAY_NO_BAC-"].Update("")
         self.window["-SOL-"].Update("")
         self.window["-TOTAL_ALIQUOTES_BAC-"].Update("")
@@ -315,8 +331,9 @@ class GUIApp:
         self.window["-DATE_PR-"].Update("")
 
 
-    # přidávací funkce
+    # přidávací funkce - přidájí zadané hodnoty do "Entered vaues" části okna
     def add_bac(self, values):
+        print("zadané hodnoty byly přídány")
         total_aliquotes = int(values["-TOTAL_ALIQUOTES_BAC-"])
         batch_no = 0
         for cislo in range(total_aliquotes):
