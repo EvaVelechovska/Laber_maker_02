@@ -1,11 +1,14 @@
 import logging
 import PySimpleGUI as sg
+import sqlite3 as sq
+from sqlite3 import Error
 from inputs import CELL_MEDIUM, VALID_PROJECTS, VALID_BAC
 
 log = logging.getLogger(__name__)
 
 log = logging.getLogger(__name__)
-
+projects_database = r'/home/petr/Dokumenty/pyladies/Laber_maker_02/db/projects_database.db'
+cell_culture_database = r"/home/petr/Dokumenty/pyladies/Laber_maker_02/db/CC_database.db"
 
 class GUIApp:
 
@@ -28,7 +31,10 @@ class GUIApp:
             "-EXPORT-"      : self.export,
             "-SAVE-"        : self.save,
             "-CELL_LINE-"   : self.get_medium,
-            "-CLEAR-"       : self.clear
+            "-CLEAR-"       : self.clear,
+            "Add new project": self.create_project_window,
+            "Cell line"     : self.create_cell_line_window,
+            "Projects"      : self.create_project_window,
 
         }
         self.table_header_to_key = {
@@ -61,7 +67,7 @@ class GUIApp:
             event, values = self.window.read()
             log.debug((event, values))
 
-            if event == sg.WIN_CLOSED or event == "Close":  # always,  always give a way out!
+            if event == sg.WIN_CLOSED or event == "Close" or event == "Cancel":  # always,  always give a way out!
                 break
 
             # do actions
@@ -79,8 +85,8 @@ class GUIApp:
         def tool_bar_menu():
             menuBar_Layout = [
                 ['&File', ['&Open     Ctrl-O', '&Save       Ctrl-S', 'E&xit']],
-                ['&Edit', ['back']],
-                ['&Toolbar', ['---', 'Command &1::Command_Key', 'Command &2', '---', 'Command &3', 'Command &4']],
+                ['&Edit', ['Projects', 'Cell line', 'Bacteria']],
+                ['&Toolbar', ['---', 'Project list::Command_Key', 'CC media', 'Bac media']],
                 ['&Help', ['&About...']]
             ]
             return menuBar_Layout
@@ -245,7 +251,7 @@ class GUIApp:
                                   [sg.Text("")],
                                   [sg.Push(), sg.Button("Add", button_color=("Grey"), key="-ADD_PR-"),
                                    sg.Button("Delete", button_color=("Grey"), key="-DELETE_PR-"), ]
-                              ]),
+                                    ]),
                                sg.Frame("Entered values", size=(500, 300), layout=[
                                    [sg.Column(key="-COLUMN_PR-", layout=[
                                        [sg.Multiline(size=size3, no_scrollbar=True, pad=(0, 0), key="-LIST_ASSAY_PR-"),
@@ -254,8 +260,8 @@ class GUIApp:
                                         sg.Multiline(size=(5, 30), no_scrollbar=True, do_not_clear=True, pad=(0, 0),
                                                      key="-LIST_CONC_PR-"),
                                         sg.Multiline(size=size3, no_scrollbar=True, do_not_clear=True, pad=(0, 0),
-                                                     key="-LIST_DATE_PR-")]
-                                   ])]])
+                                                     key="-LIST_DATE_PR-")]]
+                                              )]])
                                ]
                               ]
             return Protein_layout
@@ -272,6 +278,81 @@ class GUIApp:
 
         return sg.Window("Zadejte", layout, auto_size_text=True, finalize=True)
 
+    def create_project_window(self, values):
+        data = []
+        try:
+            conn = sq.connect(projects_database)  # vytvoří spojení s databází
+            print("spojeno", sq.version)
+            cur = conn.cursor()  # umožní zapisování do dazabáze
+            cur.execute("""CREATE TABLE IF NOT EXISTS projects(
+                                no int PRIMARY KEY,
+                                name text,
+                                finished text);""")  # vytvoření tabulky
+            conn.commit()
+            print("tabulka vytvořena")
+            cur.execute("SELECT * FROM projects")
+            rows = cur.fetchall()
+            for row in rows:
+                data.append(row)
+                print(row)
+        except Error as e:
+            print(e)
+        data.sort()
+        #window["-ZAZ-"].Update(data)
+        print("projekty", data)
+
+
+    def add_new_project(self, values):
+        layout = [
+                  [sg.Text("No: "), sg.InputText(key="-ADDING_NO-")],
+                  [sg.Text("Name: "), sg.InputText(key="-ADDING_NAME-")],
+                  [sg.Text("Status: "), sg.InputText(key="-ADDING_STATUS-")],
+                  [sg.Text("")],
+                  [sg.Push(), sg.Button("Add", key="-PROJECT_ADD-"), sg.Button("Cancel")]]
+        return sg.Window("Add new project", layout, auto_size_text=True, finalize=True)
+
+
+    def create_cell_line_window(self, values):
+        print("cell culture okno")
+        data = []
+        try:
+            conn = sq.connect(cell_culture_database)  # vytvoří spojení s databází
+            print("spojeno", sq.version)
+            cur = conn.cursor()  # umožní zapisování do dazabáze
+            cur.execute("""CREATE TABLE IF NOT EXISTS cell_culture(
+                                    name text,
+                                    medium text);""")  # vytvoření tabulky
+            conn.commit()
+            print("tabulka vytvořena")
+            cur.execute("SELECT * FROM cell_culture")
+            rows = cur.fetchall()
+            for row in rows:
+                data.append(row)
+                print(row)
+        except Error as e:
+            print(e)
+        data.sort()
+        self.window["-ZAZ-"].Update(data)
+
+    def add_cell_line(self, values):
+        layout = [[sg.Text("cell line: "), sg.InputText(key="-ADDING_CELL_LINE-")],
+                  [sg.Text("medium: "), sg.InputText(key="-ADDING_CC_MEDIUM-")],
+                  [sg.Text("")],
+                  [sg.Push(), sg.Button("Add", key="-ADD_CELL_LINE-"), sg.Button("Cancel")]
+            ]
+        print("nová linie byla zadána")
+        return sg.Window("Add cell line", layout, auto_size_text=True, finalize=True)
+
+
+    def create_bac_window(self, values):
+        print("bakterie :-)")
+        layout = [[sg.Text("Bacteria: "), sg.InputText(key="-ADDING_BACTERIA-")],
+                  [sg.Text("Medium: "), sg.InputText(key="-ADDING_BAC_MEDIUM-")],
+                  [sg.Text("")],
+                  [sg.Push(), sg.Button("Add", key="-ADD_BAC-"), sg.Button("Cancel")]
+            ]
+        return sg.Window("Add cell line", layout, auto_size_text=True, finalize=True)
+
     def get_medium(self, values):
         # přiřadí správné médim k buněčné linii podle vstupního slovníku CELL_MEDIUM
         print("přiřazení média")
@@ -279,15 +360,61 @@ class GUIApp:
         return medium
 
     def clear(self, values): # smaže hodnoty v "Entered values" části okna
-        print("okno vyčištěno")
-        self.window["-LIST_ASSAY_BAC-"].Update("")
-        self.window["-LIST_SOL-"].Update("")
-        self.window["-LIST_ALIQ_BAC-"].Update("")
-        self.window["-LIST_PROJECT_BAC-"].Update("")
-        self.window["-LIST_BAC-"].Update("")
-        self.window["-LIST_CONC_BAC-"].Update("")
-        self.window["-LIST_DATE_BAC-"].Update("")
+        # TODO: zajistit, aby se vymazalo jen data v otevřené záložce
+        def clear_bac():
+            self.window["-LIST_ASSAY_BAC-"].Update("")
+            self.window["-LIST_SOL-"].Update("")
+            self.window["-LIST_ALIQ_BAC-"].Update("")
+            self.window["-LIST_PROJECT_BAC-"].Update("")
+            self.window["-LIST_BAC-"].Update("")
+            self.window["-LIST_CONC_BAC-"].Update("")
+            self.window["-LIST_DATE_BAC-"].Update("")
 
+        def clear_cc():
+            self.window["-LIST_ASSAY_CC-"].Update("")
+            self.window["-LIST_ALIQ_CC-"].Update("")
+            self.window["-LIST_PROJECT_CC-"].Update("")
+            self.window["-LIST_CELL_LINE-"].Update("")
+            self.window["-LIST_MEDIUM_CC-"].Update("")
+            self.window["-LIST_CONC_CC-"].Update("")
+            self.window["-LIST_DATE_CC-"].Update("")
+
+        def clear_dev():
+            self.window["-LIST_ASSAY_DEV-"].Update("")
+            self.window["-LIST_ALIQ_DEV-"].Update("")
+            self.window["-LIST_PROJECT_CC-"].Update("")
+            self.window["-LIST_CONC_DEV-"].Update("")
+            self.window["-LIST_DATE_DEV-"].Update("")
+
+        def clear_phage():
+            self.window["-LIST_ASSAY_PH-"].Update("")
+            self.window["-LIST_ALIQ_PH-"].Update("")
+            self.window["-LIST_PROJECT_PH-"].Update("")
+            self.window["-LIST_CONC_PH-"].Update("")
+            self.window["-LIST_DATE_PH-"].Update("")
+
+        def clear_prot():
+            self.window["-LIST_ASSAY_PR-"].Update("")
+            self.window["-LIST_ALIQ_PR-"].Update("")
+            self.window["-LIST_PROJECT_PR-"].Update("")
+            self.window["-LIST_CONC_PR-"].Update("")
+            self.window["-LIST_DATE_PR-"].Update("")
+
+        if self.window["-LIST_ASSAY_BAC-"] != "":
+            clear_bac()
+            print("Bac - okno Entered values vyčištěno")
+        if self.window["-LIST_ASSAY_CC-"] != "":
+            clear_cc()
+            print("CC - okno 'Entered values' vymazáno")
+        if self.window["-LIST_ASSAY_DEV-"] != "":
+            clear_dev()
+            print("Dev - okno 'Entered values' vymazáno")
+        if self.window["-LIST_ASSAY_PH-"] != "":
+            clear_phage()
+            print("Phage - okno 'Entered values' vymazáno")
+        if self.window["-LIST_ASSAY_PR-"] != "":
+            clear_prot()
+            print("Prot - okno 'Entered values' vymazáno")
 
     # mazací funkce - vymaže zadané hodnoty v "Enter values" části okna
     def delete_bac(self, values):

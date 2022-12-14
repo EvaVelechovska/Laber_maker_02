@@ -12,22 +12,36 @@ from inputs import CELL_MEDIUM, VALID_PROJECTS
 
 
 def get_medium():
-    linie = values["-C-"]
     medium = CELL_MEDIUM.get(values["-C-"])
-    #print(linie, medium)
     return medium
 
 sg.theme("DarkBlue")
 
-layout = [
-    [sg.Text("linie: ", size=(15, 1)), sg.InputOptionMenu(values=CELL_MEDIUM.keys(), key="-C-")],
-    [sg.Text("medium", size=(15, 1)), sg.Text("", key="-M-")],
-    [sg.Button("OK"), sg.Button("Cancel")]
+def tab1_layout():
+    tab1_layout = [[sg.T("")],
+               [sg.Text("linie: ", size=(15, 1)), sg.InputOptionMenu(values=CELL_MEDIUM.keys(), key="-C-")],
+               [sg.Text("medium", size=(15, 1)), sg.OptionMenu(values=CELL_MEDIUM.values(), key="-M-")]
+               ]
+    return tab1_layout
+
+tab2_layout = [[sg.T("Phage Display")]]
+
+
+layout = [[sg.TabGroup([[
+                sg.Tab("Cell Culture", layout=tab1_layout()),
+                sg.Tab("Phage Display", layout=tab2_layout)
+        ]])],
+        [sg.Button("OK"), sg.Button("Cancel")]
     ]
 
 window = sg.Window("Vyber", layout, finalize=True)
-window["-C-"].bind("<Button>", "+RIGHT CLICK+")
-window["-M-"].bind("<Button>", "+RIGHT CLICK+")
+window.bind('<FocusOut>', '+FOCUS OUT+')
+
+window["-C-"].bind("<Leave>", "+L+")
+window["-C-"].bind("<Button>", "+C+")
+window["-C-"].bind("<DoubleButton>", "+DB+")
+window["-C-"].bind("<Enter>", "+E+")
+window["-M-"].bind("<Enter>", "+ENTER+")
 
 while True:
     event, values = window.read()
@@ -35,15 +49,15 @@ while True:
         break
     elif event == "-C-":
         pass
-    elif event == "-C-" + "+RIGHT CLICK+":
-        pass
-    elif event == "-M-":
-        pass
-
-
+    elif event == "-C-" + "+C+":
+        print("první vstup")
+    elif event == ("-C-" + "+C+") and event == ("-C-" + "+E+"):
+        print("druhý vstup")
+    elif event == "-M-" + "+ENTER+":
+        window["-M-"].Update(get_medium())
+        print("přiřazeno médium")
     elif event == "OK":
         print(get_medium())
-
 
 
     if values["-C-"] == "" and event == "OK":
