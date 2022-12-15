@@ -3,13 +3,13 @@ import PySimpleGUI as sg
 import sqlite3 as sq
 from sqlite3 import Error
 from inputs import CELL_MEDIUM, VALID_PROJECTS, VALID_BAC
+#from database_app import project_database_con, cell_culture_database_con, add_project, delete_project, bac_database_con, phage_database_con, dev_database_con,
+import database_app as dapp
 
 log = logging.getLogger(__name__)
 
 log = logging.getLogger(__name__)
 
-projects_database = r'/home/petr/Dokumenty/pyladies/Laber_maker_02/db/projects_database.db'
-cell_culture_database = r"/home/petr/Dokumenty/pyladies/Laber_maker_02/db/CC_database.db"
 
 class GUIApp:
 
@@ -279,92 +279,81 @@ class GUIApp:
 
         return sg.Window("Zadejte", layout, auto_size_text=True, finalize=True)
 
+
+    # okna, která se otevřou z menu
     def create_project_window(self, values):
         print("creating project window")
-        data = []
-        try:
-            conn = sq.connect(projects_database)  # vytvoří spojení s databází
-            print("spojeno", sq.version)
-            cur = conn.cursor()  # umožní zapisování do dazabáze
-            cur.execute("""CREATE TABLE IF NOT EXISTS projects(
-                                no int PRIMARY KEY,
-                                name text,
-                                finished text);""")  # vytvoření tabulky
-            conn.commit()
-            print("tabulka vytvořena")
-            cur.execute("SELECT * FROM projects")
-            rows = cur.fetchall()
-            for row in rows:
-                data.append(row)
-                print(row)
-        except Error as e:
-            print(e)
-        data.sort()
-        #window["-ZAZ-"].Update(data)
-        print("projekty", data)
+
+        def add_new_project_window():
+            add_project_layout = [
+                [sg.Text("No: "), sg.InputText(key="-ADDING_NO-")],
+                [sg.Text("Name: "), sg.InputText(key="-ADDING_NAME-")],
+                [sg.Text("Status: "), sg.InputText(key="-ADDING_STATUS-")],
+                [sg.Text("")],
+                [sg.Push(), sg.Button("Add", key="-PROJECT_ADD-"), sg.Button("Cancel")]]
+            add_project_window = sg.Window("Add new project", add_project_layout, finalize=True)
+            while True:
+                event, val = add_project_window.read()
+                if event == "Cancel" or sg.WIN_CLOSED:
+                    print("zavřeno")
+                    break
+                if event == "-PROJECT_ADD-":
+                    item = (val["-ADDING_NO-"], val["-ADDING_NAME-"], val["-ADDING_STATUS-"])
+                    dapp.add_project(item)
+                    print("přídán nový projekt", item)
+
+            window.close()
+
+        dapp.project_database_con()
 
         sg.theme("DarkBlue")
         layout = [
-            [sg.Text("No: "), sg.InputText(key="-ADDING_NO-")],
-            [sg.Text("Name: "), sg.InputText(key="-ADDING_NAME-")],
-            [sg.Text("Status: "), sg.InputText(key="-ADDING_STATUS-")],
-            [sg.Text("")],
+            [sg.Text("No "),sg.Text("Name "), sg.Text("Status ")],
             [sg.Listbox(values=[], key="-ZAZ-", size=(50, 20), select_mode=sg.LISTBOX_SELECT_MODE_MULTIPLE)],
-            [sg.Push(), sg.Button("Add", key="-ADD_PROJECT-"), sg.Button("Clear", key="-CLEAR-"), sg.Button("Delete", key="-DELETE-"), sg.Button("Cancel", key="Close")]]
+            [sg.Push(), sg.Button("New project", key="-ADD_PROJECT-"), sg.Button("Delete project", key="-DELETE_PROJECT-"), sg.Button("Cancel", key="Close")]]
         window = sg.Window("Projects", layout, auto_size_text=True, finalize=True)
+        window["-ZAZ-"].Update(dapp.project_database_con())
         while True:
             event, values = window.read()
             if event == "Close" or event == sg.WIN_CLOSED:
                 break
             elif event == "-ADD_PROJECT-":
-                print("přídánno")
-            elif event == "-CLEAR-":
-                print("vyčištěno")
-            elif event == "-DELETE-":
+                print("otevírám přídávací okno")
+                add_new_project_window()
+            elif event == "-DELETE_PROJECT-":
                 print("smazáno")
+
         window.close()
-
-
-    def add_new_project(self, values):
-        layout = [
-                  [sg.Text("No: "), sg.InputText(key="-ADDING_NO-")],
-                  [sg.Text("Name: "), sg.InputText(key="-ADDING_NAME-")],
-                  [sg.Text("Status: "), sg.InputText(key="-ADDING_STATUS-")],
-                  [sg.Text("")],
-                  [sg.Push(), sg.Button("Add", key="-PROJECT_ADD-"), sg.Button("Cancel")]]
-        return sg.Window("Add new project", layout, auto_size_text=True, finalize=True)
 
 
     def create_cell_line_window(self, values):
         print("cell culture okno")
-        data = []
-        try:
-            conn = sq.connect(cell_culture_database)  # vytvoří spojení s databází
-            print("spojeno", sq.version)
-            cur = conn.cursor()  # umožní zapisování do dazabáze
-            cur.execute("""CREATE TABLE IF NOT EXISTS cell_culture(
-                                    name text,
-                                    medium text);""")  # vytvoření tabulky
-            conn.commit()
-            print("tabulka vytvořena")
-            cur.execute("SELECT * FROM cell_culture")
-            rows = cur.fetchall()
-            for row in rows:
-                data.append(row)
-                print(row)
-        except Error as e:
-            print(e)
-        data.sort()
-        self.window["-ZAZ-"].Update(data)
 
-    def add_cell_line(self, values):
-        layout = [[sg.Text("cell line: "), sg.InputText(key="-ADDING_CELL_LINE-")],
-                  [sg.Text("medium: "), sg.InputText(key="-ADDING_CC_MEDIUM-")],
-                  [sg.Text("")],
-                  [sg.Push(), sg.Button("Add", key="-ADD_CELL_LINE-"), sg.Button("Cancel")]
-            ]
-        print("nová linie byla zadána")
-        return sg.Window("Add cell line", layout, auto_size_text=True, finalize=True)
+        def add_cell_line():
+            layout = [[sg.Text("cell line: "), sg.InputText(key="-ADDING_CELL_LINE-")],
+                    [sg.Text("medium: "), sg.InputText(key="-ADDING_CC_MEDIUM-")],
+                    [sg.Text("")],
+                    [sg.Push(), sg.Button("Add", key="-ADD_CELL_LINE-"), sg.Button("Cancel")]
+                ]
+            print("nové okno")
+            return sg.Window("Add cell line", layout, auto_size_text=True, finalize=True)
+
+        dapp.cell_culture_database_con()
+
+        layout = [[sg.Text("cell line"), sg.Text("medium")],
+                [sg.Listbox(values=[], key="-ZAZ-", size=(50, 20), select_mode=sg.LISTBOX_SELECT_MODE_MULTIPLE)],
+                [sg.Push(), sg.Button("New line", key="-ADD_LINE-"), sg.Button("Delete line", key="-DELETE_LINE-"), sg.Button("Cancel", key="Close")]]
+        window = sg.Window("Projects", layout, auto_size_text=True, finalize=True)
+        while True:
+            event, values = window.read()
+            if event == "Close" or event == sg.WIN_CLOSED:
+                break
+            elif event == "-ADD_LINE-":
+                print("přídánno")
+                add_cell_line()
+            elif event == "-DELETE_LINE-":
+                print("smazáno")
+        window.close()
 
 
     def create_bac_window(self, values):

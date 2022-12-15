@@ -28,7 +28,7 @@ Example of output:
 """
 import csv
 import logging
-from database_app import project_database_con
+from database_app import project_database_con, cell_culture_database_con, bac_database_con, phage_database_con, dev_database_con
 
 log = logging.getLogger(__name__)
 
