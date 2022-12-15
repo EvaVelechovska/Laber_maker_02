@@ -28,11 +28,12 @@ Example of output:
 """
 import csv
 import logging
+from database_app import project_database_con
 
 log = logging.getLogger(__name__)
 
 # All
-VALID_PROJECTS = ["01 - Internal", "NO. 23", "Customer 5", "x"]
+VALID_PROJECTS = project_database_con()#["01 - Internal", "NO. 23", "Customer 5", "x"]
 
 # Bacteria
 VALID_BAC = ["E.Coli XL1", "E.Coli RV21", "B"]
