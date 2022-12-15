@@ -7,6 +7,7 @@ from inputs import CELL_MEDIUM, VALID_PROJECTS, VALID_BAC
 log = logging.getLogger(__name__)
 
 log = logging.getLogger(__name__)
+
 projects_database = r'/home/petr/Dokumenty/pyladies/Laber_maker_02/db/projects_database.db'
 cell_culture_database = r"/home/petr/Dokumenty/pyladies/Laber_maker_02/db/CC_database.db"
 
@@ -279,6 +280,7 @@ class GUIApp:
         return sg.Window("Zadejte", layout, auto_size_text=True, finalize=True)
 
     def create_project_window(self, values):
+        print("creating project window")
         data = []
         try:
             conn = sq.connect(projects_database)  # vytvoří spojení s databází
@@ -300,6 +302,27 @@ class GUIApp:
         data.sort()
         #window["-ZAZ-"].Update(data)
         print("projekty", data)
+
+        sg.theme("DarkBlue")
+        layout = [
+            [sg.Text("No: "), sg.InputText(key="-ADDING_NO-")],
+            [sg.Text("Name: "), sg.InputText(key="-ADDING_NAME-")],
+            [sg.Text("Status: "), sg.InputText(key="-ADDING_STATUS-")],
+            [sg.Text("")],
+            [sg.Listbox(values=[], key="-ZAZ-", size=(50, 20), select_mode=sg.LISTBOX_SELECT_MODE_MULTIPLE)],
+            [sg.Push(), sg.Button("Add", key="-ADD_PROJECT-"), sg.Button("Clear", key="-CLEAR-"), sg.Button("Delete", key="-DELETE-"), sg.Button("Cancel", key="Close")]]
+        window = sg.Window("Projects", layout, auto_size_text=True, finalize=True)
+        while True:
+            event, values = window.read()
+            if event == "Close" or event == sg.WIN_CLOSED:
+                break
+            elif event == "-ADD_PROJECT-":
+                print("přídánno")
+            elif event == "-CLEAR-":
+                print("vyčištěno")
+            elif event == "-DELETE-":
+                print("smazáno")
+        window.close()
 
 
     def add_new_project(self, values):
