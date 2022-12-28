@@ -1,12 +1,12 @@
 import sqlite3 as sq
 from sqlite3 import Error
 
-
 projects_database = r'/home/petr/Dokumenty/pyladies/Laber_maker_02/db/projects_database.db'
 cell_culture_database = r"/home/petr/Dokumenty/pyladies/Laber_maker_02/db/CC_database.db"
 bac_database = r'/home/petr/Dokumenty/pyladies/Laber_maker_02/db/bac_database.db'
 phage_database = r'/home/petr/Dokumenty/pyladies/Laber_maker_02/db/phage_database.db'
 dev_database = r'/home/petr/Dokumenty/pyladies/Laber_maker_02/db/dev_database.db'
+
 
 def project_database_con():
     data = []
@@ -53,14 +53,16 @@ def add_project(item):
     print(entries)
     return entries
 
+
 def delete_project(no):
     try:
         conn = sq.connect(projects_database)  # vytvoří spojení s databází
         print("spojeno", sq.version)
         cur = conn.cursor()  # umožní zapisování do dazabáze
-        cur.execute("DELETE FROM projects WHERE no = ?", no)
+        sql = "DELETE FROM projects WHERE no = " + str(no)
+        cur.execute(sql)
         conn.commit()
-        print("smazáno")
+        print("smazáno", no)
     except Error as e:
         print(e)
 
@@ -87,6 +89,7 @@ def cell_culture_database_con():
     print("buněčné linie", data)
     return data
 
+
 def bac_database_con():
     data = []
     try:
@@ -109,8 +112,10 @@ def bac_database_con():
     print("bakterie", data)
     return data
 
+
 def phage_database_con():
     pass
+
 
 def dev_database_con():
     pass

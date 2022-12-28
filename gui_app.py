@@ -87,7 +87,6 @@ class GUIApp:
             menuBar_Layout = [
                 ['&File', ['&Open     Ctrl-O', '&Save       Ctrl-S', 'E&xit']],
                 ['&Edit', ['Projects', 'Cell line', 'Bacteria']],
-                ['&Toolbar', ['---', 'Project list::Command_Key', 'CC media', 'Bac media']],
                 ['&Help', ['&About...']]
             ]
             return menuBar_Layout
@@ -290,11 +289,11 @@ class GUIApp:
                 [sg.Text("Name: "), sg.InputText(key="-ADDING_NAME-")],
                 [sg.Text("Status: "), sg.InputText(key="-ADDING_STATUS-")],
                 [sg.Text("")],
-                [sg.Push(), sg.Button("Add", key="-PROJECT_ADD-"), sg.Button("Cancel")]]
+                [sg.Push(), sg.Button("Add", key="-PROJECT_ADD-"), sg.Button("Cancel", key="-CANCEL-")]]
             add_project_window = sg.Window("Add new project", add_project_layout, finalize=True)
             while True:
                 event, val = add_project_window.read()
-                if event == "Cancel" or sg.WIN_CLOSED:
+                if event == "-CANCEL-" or event == sg.WIN_CLOSED:
                     print("zavřeno")
                     break
                 if event == "-PROJECT_ADD-":
@@ -302,13 +301,13 @@ class GUIApp:
                     dapp.add_project(item)
                     print("přídán nový projekt", item)
 
-            window.close()
+            add_project_window.close()
 
         dapp.project_database_con()
 
         sg.theme("DarkBlue")
         layout = [
-            [sg.Text("No "),sg.Text("Name "), sg.Text("Status ")],
+            [sg.Text("No "), sg.Text("Name "), sg.Text("Status ")],
             [sg.Listbox(values=[], key="-ZAZ-", size=(50, 20), select_mode=sg.LISTBOX_SELECT_MODE_MULTIPLE)],
             [sg.Push(), sg.Button("New project", key="-ADD_PROJECT-"), sg.Button("Delete project", key="-DELETE_PROJECT-"), sg.Button("Cancel", key="Close")]]
         window = sg.Window("Projects", layout, auto_size_text=True, finalize=True)
@@ -321,8 +320,13 @@ class GUIApp:
                 print("otevírám přídávací okno")
                 add_new_project_window()
             elif event == "-DELETE_PROJECT-":
-                print("smazáno")
-
+                chosen = window["-ZAZ-"].get()
+                print("smazáno", chosen)
+                for index, value in enumerate(chosen):
+                    no = value[0]
+                    print(no)
+                    dapp.delete_project(no)
+        window["-ZAZ-"].Update(dapp.project_database_con())
         window.close()
 
 

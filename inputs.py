@@ -33,7 +33,7 @@ from database_app import project_database_con, cell_culture_database_con, bac_da
 log = logging.getLogger(__name__)
 
 # All
-VALID_PROJECTS = project_database_con()#["01 - Internal", "NO. 23", "Customer 5", "x"]
+VALID_PROJECTS = project_database_con()
 
 # Bacteria
 VALID_BAC = ["E.Coli XL1", "E.Coli RV21", "B"]
