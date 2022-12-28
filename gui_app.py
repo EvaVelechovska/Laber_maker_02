@@ -279,7 +279,7 @@ class GUIApp:
         return sg.Window("Zadejte", layout, auto_size_text=True, finalize=True)
 
 
-    # okna, která se otevřou z menu
+    # okna, která se otevřou z toolbar menu
     def create_project_window(self, values):
         print("creating project window")
 
@@ -313,6 +313,7 @@ class GUIApp:
         window = sg.Window("Projects", layout, auto_size_text=True, finalize=True)
         window["-ZAZ-"].Update(dapp.project_database_con())
         while True:
+            window["-ZAZ-"].Update(dapp.project_database_con())
             event, values = window.read()
             if event == "Close" or event == sg.WIN_CLOSED:
                 break
@@ -321,12 +322,26 @@ class GUIApp:
                 add_new_project_window()
             elif event == "-DELETE_PROJECT-":
                 chosen = window["-ZAZ-"].get()
-                print("smazáno", chosen)
-                for index, value in enumerate(chosen):
-                    no = value[0]
-                    print(no)
-                    dapp.delete_project(no)
-        window["-ZAZ-"].Update(dapp.project_database_con())
+                layout = [[sg.Text("Do you really want delete?", justification="c")],
+                          [sg.Text(chosen, justification="c")],
+                          [sg.Push(), sg.Button("yes"), sg.Button("no"), sg.Push()]
+                          ]
+                window_yn = sg.Window(f"Yes/No", layout, finalize=True)
+                while True:
+                    event, values = window_yn.read()
+                    if event == sg.WIN_CLOSED or event == "no":
+                        break
+                    elif event == "yes":
+                        print("zmáčknul jsi yes")
+                        for index, value in enumerate(chosen):
+                            first_item = value[0]
+                            no = first_item
+                            print(no)
+                            dapp.delete_project(no)
+                        print("smazáno", chosen)
+                        window_yn.close()
+
+
         window.close()
 
 
